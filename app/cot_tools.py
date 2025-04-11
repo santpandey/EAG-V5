@@ -22,7 +22,7 @@ def show_reasoning(steps: list) -> TextContent:
     )
 
 @mcp.tool()
-def calculate_reverse(expression: str) -> TextContent:
+def calculate(expression: str) -> TextContent:
     """Calculate the reverse of result"""
     console.print("[blue]FUNCTION CALL:[/blue] calculate()")
     console.print(f"[blue]Expression:[/blue] {expression}")

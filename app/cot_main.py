@@ -73,7 +73,7 @@ async def main():
     User: Solve the coding question "Given an integer x, return true if x is a palindrome, and false otherwise."
     Assistant: FUNCTION_CALL: {"function_name":"show_reasoning","steps":["1. First, Reverse the integer to a string", "2. Example: 24142 becomes '24142'"]}
     User: Next step?
-    Assistant: FUNCTION_CALL: {"function_name":"calculate_reverse","steps":[24142]} 
+    Assistant: FUNCTION_CALL: {"function_name":"calculate","steps":[24142]} 
     User: Result is '24142'. Let's verify this step.
     Assistant: FUNCTION_CALL: {"function_name":"verify","steps":[24142,'24142']}
     User: Verified. Next step?
@@ -81,7 +81,7 @@ async def main():
     User: True if both the integers are same, false otherwise.
     Assistant: FINAL_ANSWER: true"""
 
-                problem = "Given an integer 3333, return true if 3333 is a palindrome, and false otherwise."
+                problem = "Given an integer 1221, return true if 1221 is a palindrome, and false otherwise."
                 console.print(Panel(f"Problem: {problem}", border_style="cyan"))
 
                 # Initialize conversation
@@ -121,7 +121,7 @@ async def main():
                             await session.call_tool("show_reasoning", arguments={"steps": steps})
                             prompt += f"\nUser: Next step?"
                             
-                        elif func_name == "calculate_reverse":
+                        elif func_name == "calculate":
                             #expression = parts[1]
                             #print("three")
                             #print(result_json)
@@ -131,7 +131,7 @@ async def main():
                                 else:
                                     i += 1    
                                 expression = result_json["steps"][i]
-                                calc_result = await session.call_tool("calculate_reverse", arguments={"expression": expression})
+                                calc_result = await session.call_tool("calculate", arguments={"expression": expression})
                                 print("calc_result", calc_result)
                                 if calc_result.content:
                                     value = calc_result.content[0].text
@@ -142,28 +142,53 @@ async def main():
                                 break    
                             
                         elif func_name == "verify":
-                            #expression, expected = parts[1], float(parts[2])
-                            #print("four")
-                            #print(result_json)
-                            if len(conversation_history) >= 2:
-                                original_str = conversation_history[0][1]
-                                reversed_str = conversation_history[1][1]
-                                await session.call_tool("verify", arguments={
-                                    "expression": original_str,
-                                    "expected": reversed_str
-                                })
-                                prompt += f"\nUser: Verified. Next step?"
-                            else:
-                                expression = result_json["steps"][0]
-                                expected = float(result_json["steps"][1])
-                                await session.call_tool("verify", arguments={
-                                    "expression": expression,
-                                    "expected": expected
-                                })
+                            
+                            print("four")
+                            try:
+                                if len(conversation_history) >= 2:
+                                    original_str = conversation_history[0][1]
+                                    reversed_str = conversation_history[1][1]
+                                    print("original_str", original_str)
+                                    print("reversed_str", reversed_str)
+                                    verify_result = await session.call_tool("verify", arguments={
+                                        "expression": original_str,
+                                        "expected": reversed_str
+                                    })
+                                    if verify_result.content:
+                                        value = verify_result.content[1].text
+                                        print("value", value)
+                                        if value:
+                                            print("Result :", value)
+                                            break
+                                        else:
+                                            print("Result :", value)
+                                    prompt += f"\nUser: Verified. Next step?"
+                                else:
+                                    expression = result_json["steps"][0]
+                                    expected = float(result_json["steps"][1])
+                                    print("expression", expression)
+                                    print("expected", expected)
+                                
+                                    verify_result = await session.call_tool("verify", arguments={
+                                        "expression": expression,
+                                        "expected": expected
+                                    })
+                                    if verify_result.content:
+                                        value = verify_result.content[1].text
+                                        print("value", value)
+                                        if value:
+                                            print("Result :", value)
+                                            break
+                                        else:
+                                            print("Result :", value)    
+                                        prompt += f"\r\nUser: Verified. Next step?"
+                                        conversation_history.append((expression, value))
                                 #expression, expected = parts[1], float(parts[2])
                                 #console.print("[red]Error: Not enough history to verify palindrome[/red]")
                                 #break
-
+                            except Exception as e:
+                                console.print(f"[red]Error: {e}[/red]")
+                                break
 
                             #expression = result_json["steps"][0]
                             #expected = float(result_json["steps"][1])
@@ -182,14 +207,18 @@ async def main():
                         #        "expression": problem,
                         #        "expected": final_answer
                         #    })
-                        break
+                        #break
                     
                     prompt += f"\nAssistant: {result}"
 
-                console.print("\n[green]Calculation completed![/green]")
+                #console.print("\n[green]Calculation completed![/green]")
 
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
-
+    
+    def extract_numbers_from_string(text):
+        numbers = re.findall(r"[-+]?\d*\.?\d+", text)
+        return numbers
+    
 if __name__ == "__main__":
     asyncio.run(main())
