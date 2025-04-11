@@ -9,90 +9,47 @@ client = genai.Client(api_key=api_key)
 
 
 def get_response( message: str):
-    print("Message is ",message)
-    message = """You are a Prompt Evaluation Assistant.
-You will receive a prompt written by a student. Your job is to review this prompt
-and assess how well it supports structured, step-by-step reasoning in an LLM (e.g.,
-for math, logic, planning, or tool use).
-Evaluate the prompt on the following criteria:
-1. Explicit Reasoning Instructions✅
-- Does the prompt tell the model to reason step-by-step?
-- Does it include instructions like “explain your thinking” or “think before you
-answer”?
-2. Structured Output Format✅
-- Does the prompt enforce a predictable output format (e.g., FUNCTION_CALL,
-JSON, numbered steps)?
-- Is the output easy to parse or validate?
-3. Separation of Reasoning and Tools✅
-- Are reasoning steps clearly separated from computation or tool-use steps?
-- Is it clear when to calculate, when to verify, when to reason?
-4. Conversation Loop Support✅
-- Could this prompt work in a back-and-forth (multi-turn) setting?
-- Is there a way to update the context with results from previous steps?
-5. Instructional Framing✅
-- Are there examples of desired behavior or “formats” to follow?
-- Does the prompt define exactly how responses should look?
-6. Internal Self-Checks✅
-- Does the prompt instruct the model to self-verify or sanity-check intermediate
-steps?
-7. Reasoning Type Awareness✅
-- Does the prompt encourage the model to tag or identify the type of reasoning
-used (e.g., arithmetic, logic, lookup)?
-8. Error Handling or Fallbacks✅
-- Does the prompt specify what to do if an answer is uncertain, a tool fails, or
-the model is unsure?
-9. Overall Clarity and Robustness✅
-- Is the prompt easy to follow?
-- Is it likely to reduce hallucination and drift?
----
-Respond with a structured review in JSON in this format:
-{
-"explicit_reasoning": true,
-"structured_output": true,
-"tool_separation": true,
-"conversation_loop": false,
-"instructional_framing": true,
-"internal_self_checks": false,
-"reasoning_type_awareness": false,
-"fallbacks": false,
-"overall_clarity": "Excellent structure, but could improve with self-checks and
-error fallbacks."
-}
+    
+
+    user_prompt="""You are a coding reasoning agent that solves coding problems step by step.
+    You have access to these tools:
+    - show_reasoning(steps: list) - Show your step-by-step reasoning process
+    - calculate(expression: str) - Calculate the result of an expression
+    - verify(expression: str, expected: float) - Verify if a calculation is correct
+
+    First show your reasoning, then calculate and verify each step.
+
+    Respond with EXACTLY ONE line in one of these formats:
+    1. FUNCTION_CALL: {"function_name":"show_reasoning","steps":["First Step","Second Step"]}
+    2. FINAL_ANSWER: answer
+
+    Example:
+    User: Solve the coding question "Given an integer x, return true if x is a palindrome, and false otherwise."
+    Assistant: FUNCTION_CALL: {"function_name":"show_reasoning","steps":["1. First, convert input to int array", "2. Example: 24142 becomes [2,4,1,4,2]"]}
+    User: Next step?
+    Assistant: FUNCTION_CALL: {"function_name":"calculate","steps":[24142]} 
+    User: Result is [2,4,1,4,2]. Let's verify this step.
+    Assistant: FUNCTION_CALL: {"function_name":"verify","steps":[24142,[2,4,1,4,2]}
+    User: Verified. Next step?
+    Assistant: FUNCTION_CALL: {"function_name":"show_reasoning","steps":["1. For the integer array [2,4,1,4,2], iterate from 1st element and last element simulatenosuly. let's call the variable name as i and j respectively", "2. Keep Compare whether array[i] == arra[j]. Increment i by 1 step and decement j by 1 step. Stop if j becomes less than i"]}
+    User: Next step?.
+    Assistant: FUNCTION_CALL: {"function_name":"verify","steps":[array[i],array[j]}
+    User: True if array[i] == array[j], false otherwise.
+    Assistant: FINAL_ANSWER: true"""
 
 
-Here's the User Prompt.
-
-Problem: I need you to calculate the largest strictly increasing or deceasing substring of a string. 
-
-Explanations: Increasing substring means that each character in substring has higher ASCII code than its previous character. For Descreasing substring, each character's ASCII code will be lower than its previous character.
-
-Question: String is "hfadsfdsfchurdcvbh"
- 
-If you need to create any helper function or utility function to arrive at an answer, you can create them and provide them in this format:
-FUNCTION_CALL: function_name|args1|args2....
-where function_name is the actual helper or utility function and args1, args2 are their corresponding arguments.
-
-I need you to provide me how do you plan to solve this problem in bulleted points. Could you also tag each planning phase with either. An example would be: If a step involves breaking down a problem, could you tag it with "Thinking". Similarly if one of the step is extracting results from a function, could you please tag it as "Code Execution".
-
-Could you reverify whatever answer you had proposed in the first place. Reverifying means you should again check all the steps prior to it to determine whether any step was miscalculated or not. For each steps in reverification, tag them as "Correct" or "Incorrect". If a step is "Incorrect", reverify that step again till you get correct answer and tag it from "Incorrect" to "Correct"
-
-If a string is malformed or a character in a string doesn't have corresponding ASCII character, respond with the answer "The provided string is invalid.
-
-Only Provide the answer in the JSON Schema called Structured Review mentioned above. Don't provide any other text, keywords, etc. Ensure that the response is a valid JSON object.
-I am noticing that I am not able to parse the response which you are sending to a valid JSON. Can you please ensure that you send the response in a JSON format so that I could convert it to JSON using json.loads() function correctly?
-Could you please remove the json keyword which you are sending in the response """
-    if len(message.strip()) == 0:
-        print("Message is empty")
-        message = default_message
-    print("Message is ",message)
-    response = client.models.generate_content(
-        model="gemini-2.5-pro-exp-03-25",
-        contents=message,
-    )
-    print("response is ",response.text.strip())
-    if response.text.startswith("```json"):
-        json_string = response.text[len("```json"):].strip().replace("```","")
-        print("json string is ",json_string)
-        return json.loads(json_string)
-    else:   
-        return json.loads(response.text)
+    
+    if True:
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-pro-exp-03-25",
+            contents=user_prompt,
+        )
+        print("response is ",response.text.strip())
+        return response.text.strip()
+    #if response.text.startswith("```json"):
+        #json_string = response.text[len("```json"):].strip().replace("```","")
+        #print("json string is ",json_string)
+        #return json_string
+    #else:   
+        #return json.loads(response.text)
