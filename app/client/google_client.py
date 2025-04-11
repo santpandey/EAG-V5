@@ -36,14 +36,14 @@ def get_response( message: str):
     Assistant: FUNCTION_CALL: {"function_name":"verify","steps":[array[i],array[j]}
     User: True if array[i] == array[j], false otherwise.
     Assistant: FINAL_ANSWER: true"""
-
-
+    message = "Given an integer 212, return true if 212 is a palindrome, and false otherwise."
+    f_prompt = f"{user_prompt}\n\nSolve this problem step by step: {message}"
     
     if True:
         
         response = client.models.generate_content(
-            model="gemini-2.5-pro-exp-03-25",
-            contents=user_prompt,
+            model="gemini-2.0-flash",
+            contents=f_prompt,
         )
         print("response is ",response.text.strip())
         return response.text.strip()
